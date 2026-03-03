@@ -5,13 +5,21 @@
 
     let posX = 100
     let posY = 100
-
-    const controller = new InputController({
+    let actionsConfig = {
         left: { keys: [37, 65] },
         right: { keys: [39, 68] },
         top: { keys: [38, 87] },
-        bottom: { keys: [40, 83] }
-    }, targetElement)
+        bottom: { keys: [40, 83] },
+        fire: { mouse: { button: 0 } },
+    }
+
+    const keyboardPlugin = new KeyboardPlugin()
+    const mousePlugin = new MousePlugin()
+
+    const controller = new InputController(actionsConfig, targetElement, [keyboardPlugin, mousePlugin])
+
+    window.addEventListener('blur', () => controller._handleWindowBlur())
+    window.addEventListener('focus', () => controller._handleWindowFocus())
 
     function updateUI() {
         document.getElementById('enabled-indicator').textContent = controller.enabled;
@@ -44,6 +52,9 @@
         } else {
             player.style.backgroundColor = 'red'
         }
+        if (controller.isActionActive('fire')) {
+            player.style.backgroundColor = 'green'
+        }
         updateUI()
         requestAnimationFrame(updatePlayer)
     }
@@ -71,7 +82,11 @@
         controller.enabled = false
     })
     document.getElementById('btn-bind-jump').addEventListener('click', () => {
-        controller.bindActions({ jump: { keys: [32] } })
+        actionsConfig = {
+            ...actionsConfig,
+            jump: { keys: [32] }
+        }
+        controller.bindActions(actionsConfig)
     })
     document.getElementById('btn-enable-left').addEventListener('click', () => {
         controller.enableAction('left')
