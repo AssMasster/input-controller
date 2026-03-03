@@ -21,48 +21,47 @@
             }
         };
 
-bindActions(actionsToBind) {
-    for (const [actionName, config] of Object.entries(actionsToBind)) {
-        let action = this._actions.get(actionName);
-        const newKeys = config.keys || [];
-        const newEnabled = config.enabled !== undefined ? config.enabled : (action ? action.enabled : true);
+        bindActions(actionsToBind) {
+            for (const [actionName, config] of Object.entries(actionsToBind)) {
+                let action = this._actions.get(actionName);
+                const newKeys = config.keys || [];
+                const newEnabled = config.enabled !== undefined ? config.enabled : (action ? action.enabled : true);
 
-        if (!action) {
-            action = { keys: new Set(), enabled: newEnabled, active: false };
-            this._actions.set(actionName, action);
-        } else {
-            // Удаляем старые привязки
-            for (const oldKey of action.keys) {
-                const actionsSet = this._keyToActions.get(oldKey);
-                if (actionsSet) {
-                    actionsSet.delete(actionName);
-                    if (actionsSet.size === 0) this._keyToActions.delete(oldKey);
+                if (!action) {
+                    action = { keys: new Set(), enabled: newEnabled, active: false };
+                    this._actions.set(actionName, action);
+                } else {
+                    // Удаляем старые привязки
+                    for (const oldKey of action.keys) {
+                        const actionsSet = this._keyToActions.get(oldKey);
+                        if (actionsSet) {
+                            actionsSet.delete(actionName);
+                            if (actionsSet.size === 0) this._keyToActions.delete(oldKey);
+                        }
+                    }
+                    action.keys.clear();
+                    action.enabled = newEnabled;
+                }
+
+                // Добавляем новые ключи
+                for (const keyCode of newKeys) {
+                    action.keys.add(keyCode);
+                    if (!this._keyToActions.has(keyCode)) {
+                        this._keyToActions.set(keyCode, new Set());
+                    }
+                    this._keyToActions.get(keyCode).add(actionName);
+                }
+
+                const wasActive = action.active;
+                const nowActive = [...action.keys].some(code => this._keyStates.get(code));
+                action.active = nowActive;
+
+                if (wasActive !== nowActive && action.enabled && this._enabled && this._focused && this._target) {
+                    const eventType = nowActive ? InputController.ACTION_ACTIVATED : InputController.ACTION_DEACTIVATED;
+                    this._dispatchEvent(eventType, actionName);
                 }
             }
-            action.keys.clear();
-            action.enabled = newEnabled;
         }
-
-        // Добавляем новые ключи (общая часть)
-        for (const keyCode of newKeys) {
-            action.keys.add(keyCode);
-            if (!this._keyToActions.has(keyCode)) {
-                this._keyToActions.set(keyCode, new Set());
-            }
-            this._keyToActions.get(keyCode).add(actionName);
-        }
-
-        // Пересчитываем активность (общая часть)
-        const wasActive = action.active;
-        const nowActive = [...action.keys].some(code => this._keyStates.get(code));
-        action.active = nowActive;
-
-        if (wasActive !== nowActive && action.enabled && this._enabled && this._focused && this._target) {
-            const eventType = nowActive ? InputController.ACTION_ACTIVATED : InputController.ACTION_DEACTIVATED;
-            this._dispatchEvent(eventType, actionName);
-        }
-    }
-}
         enableAction(actionName) { //() => void
             const action = this._actions.get(actionName)
             if (action) {

@@ -4,10 +4,13 @@
     const log = document.getElementById('log')
 
     let posX = 100
+    let posY = 100
 
     const controller = new InputController({
         left: { keys: [37, 65] },
-        right: { keys: [39, 68] }
+        right: { keys: [39, 68] },
+        top: { keys: [38, 87] },
+        bottom: { keys: [40, 83] }
     }, targetElement)
 
     function updateUI() {
@@ -25,14 +28,22 @@
         if (controller.isActionActive('right')) {
             posX = Math.min(500, posX + 3)
         }
+        if (controller.isActionActive('top')) {
+            posY = Math.max(0, posY - 3)
+        }
+        if (controller.isActionActive('bottom')) {
+            posY = Math.min(500, posY + 3)
+        }
         player.style.left = posX + 'px'
+        player.style.top = posY + 'px'
 
         if (controller.isActionActive('jump')) {
             player.style.backgroundColor = 'blue'
+            posY = Math.max(0, posY - 10)
+            player.style.top = posY + 'px'
         } else {
             player.style.backgroundColor = 'red'
         }
-
         updateUI()
         requestAnimationFrame(updatePlayer)
     }
