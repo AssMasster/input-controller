@@ -101,7 +101,7 @@
 
         isActionActive(actionName) { //() => bool
             const globalActive = this._globalActionStates.get(actionName)
-            const enabled = this._actionEnabled.get(actionName)
+            const enabled = this._actionEnabled.get(actionName) && this._enabled
             return globalActive && enabled
         };
 
@@ -162,7 +162,7 @@
         //         this._dispatchEvent(eventType, actionName)
         //     }
         // } 
-        
+
         /* Я протестировал, действительно действие диспатчилось,
          если при зажатой клавише нажать другую активирующую тоже самое действие, более того если зажать две то будет две активации,
          а потом отпустить одну из них то оно активируется третий раз.
