@@ -137,19 +137,38 @@
         //приватные
 
         _pluginCallback(actionName) {
-            const oldGlobalActive = this._globalActionStates.get(actionName) || false
-            const newGlobalActive = this._computeGlobalActionState(actionName)
+            const oldGlobalActive = this._globalActionStates.get(actionName) || false;
+            const newGlobalActive = this._computeGlobalActionState(actionName);
+
             if (newGlobalActive !== oldGlobalActive) {
-                this._globalActionStates.set(actionName, newGlobalActive)
-            }
-            if (this._actionEnabled.get(actionName) && this._focused && this._enabled) {
-                const eventType = newGlobalActive ?
-                    InputController.ACTION_ACTIVATED :
-                    InputController.ACTION_DEACTIVATED;
-                this._dispatchEvent(eventType, actionName)
+                this._globalActionStates.set(actionName, newGlobalActive);
+                if (this._enabled && this._focused && this._actionEnabled.get(actionName)) {
+                    const eventType = newGlobalActive ? InputController.ACTION_ACTIVATED : InputController.ACTION_DEACTIVATED;
+                    this._dispatchEvent(eventType, actionName);
+                }
             }
         }
 
+        // _pluginCallback(actionName) {
+        //     const oldGlobalActive = this._globalActionStates.get(actionName) || false
+        //     const newGlobalActive = this._computeGlobalActionState(actionName)
+        //     if (newGlobalActive !== oldGlobalActive) {
+        //         this._globalActionStates.set(actionName, newGlobalActive)
+        //     }
+        //     if (this._actionEnabled.get(actionName) && this._focused && this._enabled) {
+        //         const eventType = newGlobalActive ?
+        //             InputController.ACTION_ACTIVATED :
+        //             InputController.ACTION_DEACTIVATED;
+        //         this._dispatchEvent(eventType, actionName)
+        //     }
+        // } 
+        
+        /* Я протестировал, действительно действие диспатчилось,
+         если при зажатой клавише нажать другую активирующую тоже самое действие, более того если зажать две то будет две активации,
+         а потом отпустить одну из них то оно активируется третий раз.
+         Проблему я решил просто внеся всю логику диспатча внутрь условия newGlobalActive !== oldGlobalActive, 
+         таким образом если статус не меняется не важно сколь доаолнительных кнопок мы нажмем диспатча не будетю
+        */
         _computeGlobalActionState(actionName) {
             return this._plugins.some(plugin => {
                 return plugin.isActionActive(actionName)
